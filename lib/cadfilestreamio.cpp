@@ -38,10 +38,15 @@ CADFileStreamIO::~CADFileStreamIO()
 {
 }
 
-const char * CADFileStreamIO::ReadLine()
+std::string CADFileStreamIO::ReadLine()
 {
-    // TODO: getline
-    return nullptr;
+	//trim eventual \r at the end, because someone of the c++ standard thought
+	//it would be a good idea to make the getline() function platform-specific
+	//<irony> because noone is using differing line-ends on differing plattforms </irony>
+	std::string line;
+	std::getline(m_oFileStream, line);
+	if(line.back() == '\r') return line.substr(0, line.length() - 1);
+	return line;
 }
 
 bool CADFileStreamIO::Eof()
@@ -51,7 +56,7 @@ bool CADFileStreamIO::Eof()
 
 bool CADFileStreamIO::Open( int mode )
 {
-    auto io_mode = std::ifstream::in; // as we use ifstream
+	std::ios_base::openmode io_mode = std::ifstream::in; // as we use ifstream
     if( mode & OpenMode::binary )
         io_mode |= std::ifstream::binary;
 

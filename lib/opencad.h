@@ -48,6 +48,7 @@
     (OCAD_VERSION_MAJOR == (major) && OCAD_VERSION_MINOR > (minor)) || \
     (OCAD_VERSION_MAJOR == (major) && OCAD_VERSION_MINOR == (minor) && OCAD_VERSION_REV >= (release)))
 
+#define DXF_VERSION_IDENTIFIER "$ACADVER"
 #define DWG_VERSION_STR_SIZE  6
 
 #ifndef OCAD_EXTERN
@@ -59,13 +60,13 @@
 #      ifdef __GNUC__
 #        define OCAD_EXTERN extern __attribute__((dllexport))
 #      else        
-#        define OCAD_EXTERN extern __declspec(dllexport)
+#        define OCAD_EXTERN __declspec(dllexport)
 #      endif 
 #    else
 #      ifdef __GNUC__
 #        define OCAD_EXTERN extern __attribute__((dllimport))
 #      else        
-#        define OCAD_EXTERN extern __declspec(dllimport)
+#        define OCAD_EXTERN __declspec(dllimport)
 #      endif 
 #    endif
 #   else

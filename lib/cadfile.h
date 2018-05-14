@@ -35,6 +35,7 @@
 #include "cadclasses.h"
 #include "cadtables.h"
 #include "caddictionary.h"
+#include "constants.h"
 
 #include <string>
 
@@ -59,7 +60,7 @@ public:
     };
 
 public:
-    CADFile( CADFileIO * poFileIO );
+	CADFile( CADFileIO * poFileIO );
     virtual                 ~CADFile();
 
 public:
@@ -68,7 +69,7 @@ public:
     const CADTables & getTables() const;
 
 public:
-    virtual int    ParseFile( enum OpenOptions eOptions, bool bReadUnsupportedGeometries = true );
+	virtual CADErrorCodes    ParseFile( enum OpenOptions eOptions, bool bReadUnsupportedGeometries = true );
     virtual size_t GetLayersCount() const;
     virtual CADLayer& GetLayer( size_t index );
 
@@ -103,34 +104,34 @@ protected:
      * @brief initially read some basic values and section locator
      * @return CADErrorCodes::SUCCESS if OK, or error code
      */
-    virtual int ReadSectionLocators() = 0;
+	virtual CADErrorCodes ReadSectionLocators() = 0;
 
     /**
      * @brief Read header from CAD file
      * @param eOptions Read options
      * @return CADErrorCodes::SUCCESS if OK, or error code
      */
-    virtual int ReadHeader( enum OpenOptions eOptions ) = 0;
+	virtual CADErrorCodes ReadHeader( enum OpenOptions eOptions ) = 0;
 
     /**
      * @brief Read classes from CAD file
      * @param eOptions Read options
      * @return CADErrorCodes::SUCCESS if OK, or error code
      */
-    virtual int ReadClasses( enum OpenOptions eOptions ) = 0;
+	virtual CADErrorCodes ReadClasses( enum OpenOptions eOptions ) = 0;
 
     /**
      * @brief Create the file map for fast access to CAD objects
      * @return CADErrorCodes::SUCCESS if OK, or error code
      */
-    virtual int CreateFileMap() = 0;
+	virtual CADErrorCodes CreateFileMap() = 0;
 
     /**
      * @brief Read tables from CAD file
      * @param eOptions Read options
      * @return CADErrorCodes::SUCCESS if OK, or error code
      */
-    virtual int ReadTables( enum OpenOptions eOptions );
+	virtual CADErrorCodes ReadTables( enum OpenOptions eOptions );
 
     /**
      * @brief returns value of flag Read Unsupported Geometries

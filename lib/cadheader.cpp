@@ -232,99 +232,60 @@ CADVariant::CADVariant()
     dateTimeVal = 0;
 }
 
-CADVariant::CADVariant( const char * val )
-{
-    type        = DataType::STRING;
-    stringVal   = string( val );
-    decimalVal  = 0;
-    xVal        = 0;
-    yVal        = 0;
-    zVal        = 0;
-    dateTimeVal = 0;
+template<typename TDecimal>
+CADVariant CADVariant::fromDecimal(TDecimal val) {
+	static_assert(std::is_integral<TDecimal>::value, "Only integer values are supported by CADVariant::fromDecimal().");
+
+	CADVariant result;
+	result.type = DataType::DECIMAL;
+	result.decimalVal = val;
+	result.stringVal = std::to_string(val);
+	return result;
 }
 
-CADVariant::CADVariant( long val )
-{
-    type        = DataType ::DECIMAL;
-    decimalVal  = val;
-    stringVal   = to_string( decimalVal );
-    xVal        = 0;
-    yVal        = 0;
-    zVal        = 0;
-    dateTimeVal = 0;
+CADVariant CADVariant::fromDatetime(time_t val) {
+	CADVariant result;
+	result.type        = DataType::DATETIME;
+	result.dateTimeVal = val;
+	result.stringVal = std::to_string(val);
+	return result;
 }
 
-CADVariant::CADVariant( int val )
-{
-    type        = DataType::DECIMAL;
-    decimalVal  = val;
-    stringVal   = to_string( decimalVal );
-    xVal        = 0;
-    yVal        = 0;
-    zVal        = 0;
-    dateTimeVal = 0;
+CADVariant CADVariant::fromReal(double val) {
+	CADVariant result;
+	result.type        = DataType::REAL;
+	result.xVal        = val;
+	result.stringVal   = std::to_string( val );
+	return result;
 }
 
-CADVariant::CADVariant( short val )
-{
-    type        = DataType::DECIMAL;
-    decimalVal  = val;
-    stringVal   = to_string( decimalVal );
-    xVal        = 0;
-    yVal        = 0;
-    zVal        = 0;
-    dateTimeVal = 0;
+CADVariant CADVariant::fromCoordinates(double x, double y, double z) {
+	CADVariant result;
+	result.type = DataType::COORDINATES;
+	result.xVal = x;
+	result.yVal = y;
+	result.zVal = z;
+	result.stringVal = "[" + std::to_string(x) + "," + std::to_string(y) + "," + std::to_string(z) + "]";
+	return result;
 }
 
-CADVariant::CADVariant( double val )
-{
-    type        = DataType::REAL;
-    xVal        = val;
-    stringVal   = to_string( xVal );
-    decimalVal  = 0;
-    yVal        = 0;
-    zVal        = 0;
-    dateTimeVal = 0;
+CADVariant CADVariant::fromHandle(const CADHandle& val) {
+	CADVariant result;
+	result.type      = DataType::HANDLE;
+	result.handleVal = val;
+	result.stringVal = std::to_string( val.getAsLong() );
+	return result;
 }
 
-CADVariant::CADVariant( double x, double y, double z )
-{
-    type = DataType::COORDINATES;
-    xVal = x;
-    yVal = y;
-    zVal = z;
-
-    char str_buff[256];
-    snprintf( str_buff, 255, "[%f,%f,%f]", x, y, z );
-    stringVal = str_buff;
-
-    decimalVal  = 0;
-    dateTimeVal = 0;
+CADVariant CADVariant::fromString(const char* str) {
+	return fromString(std::string(str));
 }
 
-CADVariant::CADVariant( const string& val )
-{
-    type      = DataType::STRING;
-    stringVal = val;
-
-    decimalVal  = 0;
-    xVal        = 0;
-    yVal        = 0;
-    zVal        = 0;
-    dateTimeVal = 0;
-}
-
-CADVariant::CADVariant( const CADHandle& val )
-{
-    type      = DataType::HANDLE;
-    handleVal = val;
-    stringVal = to_string( val.getAsLong() );
-
-    decimalVal  = 0;
-    xVal        = 0;
-    yVal        = 0;
-    zVal        = 0;
-    dateTimeVal = 0;
+CADVariant CADVariant::fromString(const std::string& val) {
+	CADVariant result;
+	result.type = DataType::STRING;
+	result.stringVal = val;
+	return result;
 }
 
 CADVariant::CADVariant( const CADVariant& orig )
@@ -394,22 +355,6 @@ const CADHandle& CADVariant::getHandle() const
     return handleVal;
 }
 
-CADVariant::CADVariant( time_t val, bool bIsTime )
-{
-    type        = DataType::DATETIME;
-    dateTimeVal = val;
-
-    //TODO: data/time format
-    char str_buff[256];
-    snprintf( str_buff, 255, "%ld", dateTimeVal );
-    stringVal = str_buff;
-
-    decimalVal = 0;
-    xVal       = 0;
-    yVal       = 0;
-    zVal       = 0;
-}
-
 //------------------------------------------------------------------------------
 // CADHeader
 //------------------------------------------------------------------------------
@@ -418,7 +363,7 @@ CADHeader::CADHeader()
 {
 }
 
-int CADHeader::addValue( short code, const CADVariant& val )
+CADErrorCodes CADHeader::addValue( short code, const CADVariant& val )
 {
     if( valuesMap.find( code ) != valuesMap.end() )
         return CADErrorCodes::VALUE_EXISTS;
@@ -427,55 +372,60 @@ int CADHeader::addValue( short code, const CADVariant& val )
     return CADErrorCodes::SUCCESS;
 }
 
-int CADHeader::addValue( short code, const char * val )
+CADErrorCodes CADHeader::addValue( short code, const char * val )
 {
-    return addValue( code, CADVariant( val ) );
+	return addValue( code, CADVariant::fromString( val ) );
 }
 
-int CADHeader::addValue( short code, long val )
+CADErrorCodes CADHeader::addValue( short code, long val )
 {
-    return addValue( code, CADVariant( val ) );
+	return addValue( code, CADVariant::fromDecimal( val ) );
 }
 
-int CADHeader::addValue( short code, int val )
+CADErrorCodes CADHeader::addValue( short code, int val )
 {
-    return addValue( code, CADVariant( val ) );
+	return addValue( code, CADVariant::fromDecimal( val ) );
 }
 
-int CADHeader::addValue( short code, short val )
+CADErrorCodes CADHeader::addValue( short code, short val )
 {
-    return addValue( code, CADVariant( val ) );
+	return addValue( code, CADVariant::fromDecimal( val ) );
 }
 
-int CADHeader::addValue( short code, double val )
+CADErrorCodes CADHeader::addValue( short code, double val )
 {
-    return addValue( code, CADVariant( val ) );
+	return addValue( code, CADVariant::fromReal( val ) );
 }
 
-int CADHeader::addValue( short code, const string& val )
+CADErrorCodes CADHeader::addValue( short code, const string& val )
 {
-    return addValue( code, CADVariant( val ) );
+	return addValue( code, CADVariant::fromString( val ) );
 }
 
-int CADHeader::addValue( short code, bool val )
+CADErrorCodes CADHeader::addValue( short code, bool val )
 {
-    return addValue( code, CADVariant( val ? 1 : 0 ) );
+	return addValue( code, CADVariant::fromDecimal( val ? 1 : 0 ) );
 }
 
-int CADHeader::addValue( short code, double x, double y, double z )
+CADErrorCodes CADHeader::addValue( short code, double x, double y, double z )
 {
-    return addValue( code, CADVariant( x, y, z ) );
+	return addValue( code, CADVariant::fromCoordinates( x, y, z ) );
 }
 
-int CADHeader::addValue( short code, long julianday, long milliseconds )
+CADErrorCodes CADHeader::addValue( short code, long julianday, long milliseconds )
 {
     // unix -> julian        return ( unixSecs / 86400.0 ) + 2440587.5;
     // julian -> unix        return (julian - 2440587.5) * 86400.0
 
     double seconds     = double( milliseconds ) / 1000;
-    double unix        = ( double( julianday ) - 2440587.5 ) * 86400.0;
-    time_t fullSeconds = static_cast<time_t>(unix + seconds);
-    return addValue( code, CADVariant( fullSeconds ) );
+	double _unix        = ( double( julianday ) - 2440587.5 ) * 86400.0;
+	time_t fullSeconds = static_cast<time_t>(_unix + seconds);
+	return addValue( code, CADVariant::fromDatetime(fullSeconds) );
+}
+
+CADErrorCodes CADHeader::addValue(short code, const CADHandle& handle)
+{
+	return addValue( code, CADVariant::fromHandle( handle ) );
 }
 
 int CADHeader::getGroupCode( short code ) const

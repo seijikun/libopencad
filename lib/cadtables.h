@@ -73,12 +73,12 @@ public:
 
     void      AddTable( enum TableType eType, CADHandle hHandle );
     CADHandle GetTableHandle( enum TableType eType );
-    int       ReadTable( CADFile * const pCADFile, enum TableType eType );
+	CADErrorCodes ReadTable( CADFile * const pCADFile, enum TableType eType );
     size_t    GetLayerCount() const;
     CADLayer& GetLayer( size_t iIndex );
 
 protected:
-    int  ReadLayersTable( CADFile * const pCADFile, long dLayerControlHandle );
+	CADErrorCodes ReadLayersTable( CADFile * const pCADFile, long dLayerControlHandle );
     void FillLayer( const CADEntityObject * pEntityObject );
 protected:
     map<enum TableType, CADHandle> mapTables;

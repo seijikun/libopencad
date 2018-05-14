@@ -31,6 +31,7 @@
 
 cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 project(opencad)
+add_definitions(-DOCAD_EXPORTS=1)
 
 include(util)
 
@@ -47,6 +48,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(OBJ_LIB)
 
 add_subdirectory(dwg)
+add_subdirectory(dxf)
 
 set(HHEADERS
     opencad.h

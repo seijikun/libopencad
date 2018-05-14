@@ -59,7 +59,7 @@ public:
     CADFileIO( const char * pszFileName );
     virtual                 ~CADFileIO();
 
-    virtual const char * ReadLine() = 0;
+	virtual std::string ReadLine() = 0;
     virtual bool     Eof()                                      = 0;
     virtual bool     Open( int mode )                           = 0;
     virtual bool     IsOpened() const;

@@ -62,7 +62,7 @@
 #define UNKNOWN14 CADHeader::MAX_HEADER_CONSTANT + 14
 #define UNKNOWN15 CADHeader::MAX_HEADER_CONSTANT + 15
 
-int DWGFileR2000::ReadHeader( OpenOptions eOptions )
+CADErrorCodes DWGFileR2000::ReadHeader( OpenOptions eOptions )
 {
     char buffer[255];
     char * pabyBuf;
@@ -625,7 +625,7 @@ int DWGFileR2000::ReadHeader( OpenOptions eOptions )
                                                static_cast<int>(dHeaderVarsSectionLength) ); // TODO: CRC is calculated wrong every time.
 
 
-    int returnCode = CADErrorCodes::SUCCESS;
+	auto returnCode = CADErrorCodes::SUCCESS;
     pFileIO->Read( pabyBuf, DWGSentinelLength );
     if( memcmp( pabyBuf, DWGHeaderVariablesEnd, DWGSentinelLength ) )
     {
@@ -638,7 +638,7 @@ int DWGFileR2000::ReadHeader( OpenOptions eOptions )
     return returnCode;
 }
 
-int DWGFileR2000::ReadClasses( enum OpenOptions eOptions )
+CADErrorCodes DWGFileR2000::ReadClasses( enum OpenOptions eOptions )
 {
     if( eOptions == OpenOptions::READ_ALL || eOptions == OpenOptions::READ_FAST )
     {
@@ -692,7 +692,7 @@ int DWGFileR2000::ReadClasses( enum OpenOptions eOptions )
     return CADErrorCodes::SUCCESS;
 }
 
-int DWGFileR2000::CreateFileMap()
+CADErrorCodes DWGFileR2000::CreateFileMap()
 {
     // Seems like ODA specification is completely awful. CRC is included in section size.
     // section size
@@ -3816,14 +3816,14 @@ void DWGFileR2000::fillCommonEntityHandleData( CADEntityObject * pEnt, const cha
 
 DWGFileR2000::DWGFileR2000( CADFileIO * poFileIO ) : CADFile( poFileIO )
 {
-    oHeader.addValue( CADHeader::OPENCADVER, CADVersions::DWG_R2000 );
+	oHeader.addValue( CADHeader::OPENCADVER, static_cast<int>(CADVersions::DWG_R2000) );
 }
 
 DWGFileR2000::~DWGFileR2000()
 {
 }
 
-int DWGFileR2000::ReadSectionLocators()
+CADErrorCodes DWGFileR2000::ReadSectionLocators()
 {
     char  abyBuf[255];
     int   dImageSeeker, SLRecordsCount;

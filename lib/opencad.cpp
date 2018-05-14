@@ -31,51 +31,59 @@
 #include "opencad_api.h"
 #include "cadfilestreamio.h"
 #include "dwg/r2000.h"
+#include "dxf/r2000.h"
 
 #include <cctype>
 #include <cstdarg>
 #include <cstring>
 #include <iostream>
+#include <algorithm>
 
-static int gLastError = CADErrorCodes::SUCCESS;
+static CADErrorCodes gLastError = CADErrorCodes::SUCCESS;
 
 /**
  * @brief Check CAD file
  * @param pCADFileIO CAD file reader pointer owned by function
  * @return returns and int, 0 if CAD file has unsupported format
  */
-static int CheckCADFile(CADFileIO * pCADFileIO)
+static CADVersions CheckCADFile(CADFileIO * pCADFileIO)
 {
     if( pCADFileIO == nullptr )
-        return 0;
+		return CADVersions::UNKNOWN;
 
     const char * pszFilePath = pCADFileIO->GetFilePath();
     size_t nPathLen = strlen( pszFilePath );
 
-    if( toupper( pszFilePath[nPathLen - 3] ) == 'D' &&
-        toupper( pszFilePath[nPathLen - 2] ) == 'X' &&
-        toupper( pszFilePath[nPathLen - 1] ) == 'F' )
-    {
-        //TODO: "AutoCAD Binary DXF"
-        std::cerr << "DXF ASCII and binary is not supported yet.";
-        return 0;
-    }
-    if( ! ( toupper( pszFilePath[nPathLen - 3] ) == 'D' &&
-            toupper( pszFilePath[nPathLen - 2] ) == 'W' &&
-            toupper( pszFilePath[nPathLen - 1] ) == 'G' ) )
-    {
-        return 0;
-    }
+	if( nPathLen < 3 )
+		return CADVersions::UNKNOWN;
+	std::string fileEnding = std::string(pszFilePath).substr(nPathLen - 3);
+	std::transform(fileEnding.begin(), fileEnding.end(), fileEnding.begin(), ::tolower);
+	if( fileEnding != "dxf" && fileEnding != "dwg" )
+		return CADVersions::UNKNOWN;
 
     if( !pCADFileIO->IsOpened() )
         pCADFileIO->Open( CADFileIO::OpenMode::read | CADFileIO::OpenMode::binary );
     if( !pCADFileIO->IsOpened() )
-        return 0;
+		return CADVersions::UNKNOWN;
 
-    char pabyDWGVersion[DWG_VERSION_STR_SIZE + 1] = { 0 };
-    pCADFileIO->Rewind ();
-    pCADFileIO->Read( pabyDWGVersion, DWG_VERSION_STR_SIZE );
-    return atoi( pabyDWGVersion + 2 );
+	if(fileEnding == "dxf") {
+		pCADFileIO->Rewind();
+		std::string line;
+		do {
+			line = pCADFileIO->ReadLine();
+		} while(line != "EOF" && line != DXF_VERSION_IDENTIFIER);
+		if(line == "EOF" || std::atoi(pCADFileIO->ReadLine().c_str()) != 1) {
+			std::cerr << "Failed parsing DXF file version" << std::endl;
+			return CADVersions::UNKNOWN;
+		}
+		std::string versionNumber = pCADFileIO->ReadLine();
+		return static_cast<CADVersions>(-std::atoi(versionNumber.c_str() + 2));
+	} else if(fileEnding == "dwg") {
+		char pabyDWGVersion[DWG_VERSION_STR_SIZE + 1] = { 0 };
+		pCADFileIO->Rewind();
+		pCADFileIO->Read( pabyDWGVersion, DWG_VERSION_STR_SIZE );
+		return static_cast<CADVersions>(std::atoi( pabyDWGVersion + 2 ));
+	}
 }
 
 /**
@@ -87,7 +95,7 @@ static int CheckCADFile(CADFileIO * pCADFileIO)
  */
 CADFile * OpenCADFile( CADFileIO * pCADFileIO, enum CADFile::OpenOptions eOptions, bool bReadUnsupportedGeometries )
 {
-    int nCADFileVersion = CheckCADFile( pCADFileIO );
+	CADVersions nCADFileVersion = CheckCADFile( pCADFileIO );
     CADFile * poCAD = nullptr;
 
     switch( nCADFileVersion )
@@ -95,6 +103,9 @@ CADFile * OpenCADFile( CADFileIO * pCADFileIO, enum CADFile::OpenOptions eOption
         case CADVersions::DWG_R2000:
             poCAD = new DWGFileR2000( pCADFileIO );
             break;
+		case CADVersions::DXF_R2000:
+			poCAD = new DXFFileR2000( pCADFileIO );
+			break;
         default:
             gLastError = CADErrorCodes::UNSUPPORTED_VERSION;
             delete pCADFileIO;
@@ -134,7 +145,7 @@ const char * GetVersionString()
  * @brief Get last error code
  * @return last error code
  */
-int GetLastErrorCode()
+CADErrorCodes GetLastErrorCode()
 {
     return gLastError;
 }
@@ -156,9 +167,9 @@ CADFileIO* GetDefaultFileIO( const char * pszFileName )
  * @return positive number for dwg version, negative for dxf version, 0 if error
  * occurred
  */
-int IdentifyCADFile( CADFileIO * pCADFileIO, bool bOwn )
+CADVersions IdentifyCADFile( CADFileIO * pCADFileIO, bool bOwn )
 {
-    int result = CheckCADFile(pCADFileIO);
+	CADVersions result = CheckCADFile(pCADFileIO);
     if(bOwn)
         delete pCADFileIO;
     return result;

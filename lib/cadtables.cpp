@@ -46,7 +46,7 @@ void CADTables::AddTable( TableType eType, CADHandle hHandle )
     mapTables[eType] = hHandle;
 }
 
-int CADTables::ReadTable( CADFile * const pCADFile, CADTables::TableType eType )
+CADErrorCodes CADTables::ReadTable( CADFile * const pCADFile, CADTables::TableType eType )
 {
     auto iterAskedTable = mapTables.find( eType );
     if( iterAskedTable == mapTables.end() )
@@ -81,7 +81,7 @@ CADHandle CADTables::GetTableHandle( enum TableType eType )
     return mapTables[eType];
 }
 
-int CADTables::ReadLayersTable( CADFile * const pCADFile, long dLayerControlHandle )
+CADErrorCodes CADTables::ReadLayersTable( CADFile * const pCADFile, long dLayerControlHandle )
 {
     // Reading Layer Control obj, and aLayers.
     unique_ptr<CADLayerControlObject> spLayerControl(

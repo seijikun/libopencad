@@ -34,6 +34,7 @@
 #include "cadfileio.h"
 
 #include <fstream>
+#include <string>
 
 class CADFileStreamIO : public CADFileIO
 {
@@ -41,7 +42,7 @@ public:
     CADFileStreamIO(const char* pszFilePath);
     virtual             ~CADFileStreamIO();
 
-    virtual const char* ReadLine() override;
+	virtual std::string ReadLine() override;
     virtual bool        Eof() override;
     virtual bool        Open(int mode) override;
     virtual bool        Close() override;

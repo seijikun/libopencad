@@ -81,10 +81,10 @@ public:
     virtual             ~DWGFileR2000();
 
 protected:
-    virtual int ReadSectionLocators() override;
-    virtual int ReadHeader( enum OpenOptions eOptions ) override;
-    virtual int ReadClasses( enum OpenOptions eOptions ) override;
-    virtual int CreateFileMap() override;
+	virtual CADErrorCodes ReadSectionLocators() override;
+	virtual CADErrorCodes ReadHeader( enum OpenOptions eOptions ) override;
+	virtual CADErrorCodes ReadClasses( enum OpenOptions eOptions ) override;
+	virtual CADErrorCodes CreateFileMap() override;
 
     CADObject   * GetObject( long dHandle, bool bHandlesOnly = false ) override;
     CADGeometry * GetGeometry( size_t iLayerIndex, long dHandle, long dBlockRefHandle = 0 ) override;

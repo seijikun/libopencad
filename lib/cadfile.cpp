@@ -35,7 +35,7 @@
 
 CADFile::CADFile( CADFileIO * poFileIO )
 {
-    pFileIO = poFileIO;
+	pFileIO = poFileIO;
 }
 
 CADFile::~CADFile()
@@ -59,7 +59,7 @@ const CADTables& CADFile::getTables() const
     return oTables;
 }
 
-int CADFile::ParseFile( enum OpenOptions eOptions, bool bReadUnsupportedGeometries )
+CADErrorCodes CADFile::ParseFile( enum OpenOptions eOptions, bool bReadUnsupportedGeometries )
 {
     if( nullptr == pFileIO )
         return CADErrorCodes::FILE_OPEN_FAILED;
@@ -73,7 +73,7 @@ int CADFile::ParseFile( enum OpenOptions eOptions, bool bReadUnsupportedGeometri
     // Set flag which will tell CADLayer to skip/not skip unsupported geoms
     bReadingUnsupportedGeometries = bReadUnsupportedGeometries;
 
-    int nResultCode;
+	CADErrorCodes nResultCode;
     nResultCode = ReadSectionLocators();
     if( nResultCode != CADErrorCodes::SUCCESS )
         return nResultCode;
@@ -93,11 +93,11 @@ int CADFile::ParseFile( enum OpenOptions eOptions, bool bReadUnsupportedGeometri
     return CADErrorCodes::SUCCESS;
 }
 
-int CADFile::ReadTables( CADFile::OpenOptions /*eOptions*/ )
+CADErrorCodes CADFile::ReadTables( CADFile::OpenOptions /*eOptions*/ )
 {
     // TODO: read other tables in ALL option mode
 
-    int nResult = oTables.ReadTable( this, CADTables::LayersTable );
+	CADErrorCodes nResult = oTables.ReadTable( this, CADTables::LayersTable );
 //    if(nResult != CADErrorCodes::SUCCESS)
     return nResult;
 

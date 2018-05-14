@@ -32,6 +32,7 @@
 #define CADHEADER_H
 
 #include "opencad.h"
+#include "constants.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -62,16 +63,16 @@ public:
     };
 
 public:
-    CADVariant();
-    CADVariant( const char * val );
-    CADVariant( long val );
-    CADVariant( int val );
-    CADVariant( short val );
-    CADVariant( time_t val, bool bIsTime );
-    CADVariant( double val );
-    CADVariant( double x, double y, double z = 0 );
-    CADVariant( const CADHandle& val );
-    CADVariant( const std::string& val );
+	CADVariant();
+
+	template<typename TDecimal> static CADVariant fromDecimal(TDecimal val);
+	static CADVariant fromDatetime(time_t val);
+	static CADVariant fromReal(double val);
+	static CADVariant fromCoordinates(double x, double y, double z = 0.0);
+	static CADVariant fromHandle(const CADHandle& val);
+	static CADVariant fromString(const char* str);
+	static CADVariant fromString(const std::string& val);
+
 public:
     CADVariant( const CADVariant& orig );
     CADVariant& operator=( const CADVariant& orig );
@@ -678,17 +679,18 @@ public:
      * @param val Value to add
      * @return SUCCESS or some value from CADErrorCodes
      */
-    int              addValue( short code, const CADVariant& val );
-    int              addValue( short code, const char * val );
-    int              addValue( short code, long val );
-    int              addValue( short code, int val );
-    int              addValue( short code, short val );
-    int              addValue( short code, double val );
-    int              addValue( short code, const std::string& val );
-    int              addValue( short code, bool val );
-    int              addValue( short code, double x, double y, double z = 0 );
-    int              addValue( short code, long julianday, long milliseconds );
-    int              getGroupCode( short code ) const;
+	CADErrorCodes   addValue( short code, const CADVariant& val );
+	CADErrorCodes   addValue( short code, const char * val );
+	CADErrorCodes   addValue( short code, long val );
+	CADErrorCodes   addValue( short code, int val );
+	CADErrorCodes   addValue( short code, short val );
+	CADErrorCodes   addValue( short code, double val );
+	CADErrorCodes   addValue( short code, const std::string& val );
+	CADErrorCodes   addValue( short code, bool val );
+	CADErrorCodes   addValue( short code, double x, double y, double z = 0 );
+	CADErrorCodes   addValue( short code, long julianday, long milliseconds );
+	CADErrorCodes   addValue( short code, const CADHandle& handle );
+	int				getGroupCode( short code ) const;
     const CADVariant getValue( short code, const CADVariant& val = CADVariant() ) const;
     const char * getValueName( short code ) const;
     void   print() const;
